@@ -1,0 +1,142 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# Frontend configuration
+frontend:
+  name: frontend
+  replicaCount: 2
+  
+  image:
+    repository: caesar521/nipa-travel-frontend
+    tag: "latest"
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# Backend configuration
+backend:
+  name: backend
+  replicaCount: 2
+  
+  image:
+    repository: caesar521/nipa-travel-backend
+    tag: "latest"
+    pullPolicy: Always
+  
+  service:
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  
+  livenessProbe:
+    enabled: true
+    httpGet:
+      path: /api/health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  
+  readinessProbe:
+    enabled: true
+    httpGet:
+      path: /api/health
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+# Application configuration (non-sensitive)
+config:
+  # PORT: "8000"
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  JWT_EXPIRES_IN: "7d"
+  FRONTEND_URL: "https://k8s-test.sudlor.me"
+
+# Secrets (sensitive data)
+secrets:
+  DB_HOST: ""
+  DB_PORT: ""
+  DB_USER: ""
+  DB_PASSWORD: ""
+  DB_NAME: ""
+  JWT_SECRET: ""
+
+# Ingress configuration for Traefik
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+  
+  hosts:
+    - host:
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+  
+  tls: []
+
+# Autoscaling (optional)
+autoscaling:
+  enabled: true
+  
+  # Frontend scaling
+  frontend:
+    minReplicas: 3
+    maxReplicas: 21
+    targetCPUUtilizationPercentage: 70
+    # Optional: Scale on memory too
+    targetMemoryUtilizationPercentage: 80
+  
+  # Backend scaling  
+  backend:
+    minReplicas: 3
+    maxReplicas: 27
+    targetCPUUtilizationPercentage: 70
