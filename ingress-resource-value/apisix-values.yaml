@@ -1,0 +1,56 @@
+ingress:
+  enabled: true
+  className: "apisix"
+  annotations:
+    # APISIX specific configurations
+    apisix.ingress.kubernetes.io/enable-access-log: "true"
+    apisix.ingress.kubernetes.io/upstream-scheme: "http"
+    # Performance plugins
+    apisix.ingress.kubernetes.io/plugins: |
+      - name: prometheus
+        enable: true
+      - name: request-id
+        enable: true
+      - name: gzip
+        enable: true
+        config:
+          comp_level: 6
+          http_version: 1.1
+          buffers: 8 16k
+    # Monitoring
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9091"
+  
+  hosts:
+    - host: nipa.sudlor.me
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+    - host: prometheus.sudlor.me
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: prometheus
+              port:
+                number: 9100
+  
+  tls: []
+
+# Enable monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true

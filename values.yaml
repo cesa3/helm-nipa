@@ -7,7 +7,7 @@ frontend:
   replicaCount: 2
   
   image:
-    repository: caesar521/nipa-travel-frontend
+    repository: mcowl/nipa-travel-frontend
     tag: "latest"
     pullPolicy: Always
   
@@ -46,7 +46,7 @@ backend:
   replicaCount: 2
   
   image:
-    repository: caesar521/nipa-travel-backend
+    repository: mcowl/nipa-travel-backend
     tag: "latest"
     pullPolicy: Always
   
@@ -85,7 +85,6 @@ config:
   NODE_ENV: "production"
   LOG_LEVEL: "info"
   JWT_EXPIRES_IN: "7d"
-  FRONTEND_URL: "https://k8s-test.sudlor.me"
 
 # Secrets (sensitive data)
 secrets:
@@ -96,36 +95,9 @@ secrets:
   DB_NAME: ""
   JWT_SECRET: ""
 
-# Ingress configuration for Traefik
-ingress:
-  enabled: true
-  className: "traefik"
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
-  
-  hosts:
-    - host:
-      paths:
-        - path: /api
-          pathType: Prefix
-          backend:
-            service:
-              name: backend
-              port:
-                number: 8000
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend
-              port:
-                number: 3000
-  
-  tls: []
-
 # Autoscaling (optional)
 autoscaling:
-  enabled: true
+  enabled: false
   
   # Frontend scaling
   frontend:

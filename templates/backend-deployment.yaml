@@ -33,11 +33,6 @@ spec:
                   key: NODE_ENV
             - name: PORT
               value: "{{ .Values.backend.service.targetPort }}"
-            - name: FRONTEND_URL
-              valueFrom:
-                configMapKeyRef:
-                  name: {{ include "myapp.fullname" . }}-config
-                  key: FRONTEND_URL
             - name: JWT_EXPIRES_IN
               valueFrom:
                 configMapKeyRef:

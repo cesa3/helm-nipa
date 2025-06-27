@@ -1,0 +1,55 @@
+ingress:
+  enabled: true
+  className: "haproxy"
+  annotations:
+    # HAProxy specific configurations
+    haproxy-ingress.github.io/rewrite-target: /
+    # Performance configurations
+    haproxy-ingress.github.io/timeout-connect: "5s"
+    haproxy-ingress.github.io/timeout-client: "30s"
+    haproxy-ingress.github.io/timeout-server: "30s"
+    haproxy-ingress.github.io/timeout-tunnel: "3600s"
+    # Load balancing
+    haproxy-ingress.github.io/balance-algorithm: "leastconn"
+    # Request headers for tracing
+    haproxy-ingress.github.io/config-snippet: |
+      http-response set-header X-Ingress-Controller haproxy
+      http-response set-header X-Request-ID %[unique-id]
+    # Monitoring
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "1024"
+  
+  hosts:
+    - host: nipa.sudlor.me
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+
+    - host: prometheus.sudlor.me
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus
+            port:
+              number: 9100
+  
+  tls: []
+
+# Enable monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true

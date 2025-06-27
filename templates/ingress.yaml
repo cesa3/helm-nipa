@@ -1,13 +1,47 @@
+{{/*
+templates/ingress.yaml
+Enhanced ingress template supporting multiple ingress controllers
+*/}}
+
 {{- if .Values.ingress.enabled -}}
+{{- $fullName := include "myapp.fullname" . -}}
+{{- $svcPort := .Values.frontend.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "myapp.fullname" . }}-ingress
+  name: {{ $fullName }}-ingress
   labels:
     {{- include "myapp.labels" . | nindent 4 }}
+    ingress.controller: {{ .Values.ingress.className | default "unknown" }}
   {{- with .Values.ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
+    {{- /* Add performance monitoring annotations based on controller */ -}}
+    {{- if eq $.Values.ingress.className "traefik" }}
+    # Traefik performance annotations
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
+    {{- else if eq $.Values.ingress.className "nginx" }}
+    # NGINX performance annotations
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Ingress-Controller: nginx";
+      more_set_headers "X-Request-ID: $request_id";
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+    {{- else if eq $.Values.ingress.className "apisix" }}
+    # APISIX performance annotations
+    apisix.ingress.kubernetes.io/enable-access-log: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9091"
+    {{- else if eq $.Values.ingress.className "haproxy" }}
+    # HAProxy performance annotations
+    haproxy-ingress.github.io/config-snippet: |
+      http-response set-header X-Ingress-Controller haproxy
+      http-response set-header X-Request-ID %[unique-id]
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "1024"
+    {{- end }}
   {{- end }}
 spec:
   {{- if .Values.ingress.className }}
@@ -39,3 +73,9 @@ spec:
           {{- end }}
     {{- end }}
 {{- end }}
+
+---
+{{- if and .Values.ingress.enabled .Values.monitoring.serviceMonitor.enabled }}
+{{/*
+ServiceMonitor for application metrics
+*/}}

@@ -1,0 +1,176 @@
+apisix:
+  replicaCount: 2
+  
+  # Resource allocation
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+  # Service configuration
+  service:
+    type: NodePort
+    http:
+      enabled: true
+      servicePort: 80
+      containerPort: 9080
+      nodePort: 30080
+    tls:
+      enabled: true
+      servicePort: 443
+      containerPort: 9443
+      nodePort: 30443
+    
+  # Configuration
+  config:
+    apisix:
+      # Performance settings
+      enable_access_log: true
+      access_log_format: '{"@timestamp":"$time_iso8601","client_ip":"$remote_addr","client_user":"$remote_user","request_method":"$request_method","request_uri":"$request_uri","request_length":$request_length,"status":$status,"body_bytes_sent":$body_bytes_sent,"request_time":$request_time,"upstream_addr":"$upstream_addr","upstream_status":"$upstream_status","upstream_response_time":"$upstream_response_time","upstream_header_time":"$upstream_header_time","http_user_agent":"$http_user_agent","http_referer":"$http_referer","http_x_forwarded_for":"$proxy_add_x_forwarded_for"}'
+      
+      # Node listen configuration
+      node_listen:
+        - 9080
+        - 9443
+      
+      # Enable prometheus metrics
+      enable_prometheus_metrics: true
+      prometheus_metrics:
+        enable_export_server: true
+        export_addr:
+          ip: "0.0.0.0"
+          port: 9091
+      
+      # Performance tuning
+      worker_processes: auto
+      worker_connections: 1024
+      
+      # Plugin configuration
+      plugins:
+        - real-ip
+        - client-control
+        - proxy-control
+        - request-id
+        - zipkin
+        - ext-plugin-pre-req
+        - fault-injection
+        - mocking
+        - serverless-pre-function
+        - cors
+        - ip-restriction
+        - ua-restriction
+        - referer-restriction
+        - csrf
+        - uri-blocker
+        - request-validation
+        - openid-connect
+        - cas-auth
+        - authz-casbin
+        - authz-casdoor
+        - wolf-rbac
+        - ldap-auth
+        - hmac-auth
+        - basic-auth
+        - jwt-auth
+        - key-auth
+        - consumer-restriction
+        - serverless-post-function
+        - ext-plugin-post-req
+        - rate-limit
+        - node-status
+        - gzip
+        - server-info
+        - traffic-split
+        - redirect
+        - response-rewrite
+        - kafka-proxy
+        - batch-requests
+        - http-logger
+        - prometheus
+        - echo
+        - loggly
+        - sls-logger
+        - tcp-logger
+        - kafka-logger
+        - rocketmq-logger
+        - syslog
+        - udp-logger
+        - file-logger
+        - clickhouse-logger
+        - tencent-cloud-cls
+        - splunk-hec-logging
+        - datadog
+        - loki-logger
+        - elasticsearch-logger
+        - skywalking-logger
+        - google-cloud-logging
+
+# APISIX Dashboard (optional)
+dashboard:
+  enabled: false
+
+# APISIX Ingress Controller
+ingress-controller:
+  enabled: true
+  replicaCount: 2
+  
+  # Resource allocation
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  config:
+    apisix:
+      serviceNamespace: default
+      serviceName: apisix-admin
+      servicePort: 9180
+      adminKey: "edd1c9f034335f136f87ad84b625c8f1"
+    
+    # Ingress configuration
+    kubernetes:
+      kubeconfig: ""
+      resyncInterval: 60s
+      namespace: ""
+      watchEndpointSlices: false
+      apisixRouteVersion: "apisix.apache.org/v2"
+      enableGatewayAPI: false
+      
+    # Log configuration
+    log:
+      level: info
+      output: stderr
+
+# ETCD configuration
+etcd:
+  enabled: true
+  replicaCount: 3
+  
+  # Resource allocation
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 2379
+    peerPort: 2380
+
+# ServiceMonitor for Prometheus
+serviceMonitor:
+  enabled: true
+  namespace: default
+  interval: 15s
+  labels:
+    app: apisix

@@ -1,0 +1,36 @@
+ingress:
+  enabled: true
+  className: "traefik"
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    # traefik.ingress.kubernetes.io/router.rule: "Host(`nipa.sudlor.me`)"
+    # Performance monitoring
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
+    # Request tracing
+    # traefik.ingress.kubernetes.io/router.middlewares: "default-headers@kubernetescrd"
+  
+  hosts:
+    - host: nipa.sudlor.me
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+
+  tls: []
+
+# Enable monitoring
+monitoring:
+  serviceMonitor:
+    enabled: true

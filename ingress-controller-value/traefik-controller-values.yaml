@@ -1,0 +1,76 @@
+deployment:
+  replicas: 2
+  
+# Resource allocation
+resources:
+  requests:
+    cpu: 200m
+    memory: 128Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+service:
+  type: NodePort
+
+ports:
+  web:
+    port: 8000
+    exposedPort: 80
+    nodePort: 30080
+    protocol: TCP
+
+  websecure:
+    port: 8443
+    exposedPort: 443
+    nodePort: 30443
+    protocol: TCP
+
+  metrics:
+    port: 9100
+    exposedPort: 9100
+    nodePort: 30100
+    protocol: TCP
+
+
+# Metrics and monitoring
+metrics:
+  prometheus:
+    enabled: true
+    addEntryPointsLabels: true
+    addServicesLabels: true
+    addRoutersLabels: true
+    buckets: "0.1,0.3,1.2,5.0,10.0,30.0"
+
+# Traefik configuration
+additionalArguments:
+  - "--log.level=INFO"
+  - "--accesslog=true"
+  - "--accesslog.format=json"
+  - "--metrics.prometheus=true"
+  - "--metrics.prometheus.addEntryPointsLabels=true"
+  - "--metrics.prometheus.addServicesLabels=true"
+  - "--metrics.prometheus.addRoutersLabels=true"
+  - "--entrypoints.web.address=:8000"
+  - "--entrypoints.websecure.address=:8443"
+  - "--entrypoints.metrics.address=:9100"
+  - "--api.dashboard=true"
+  - "--api.debug=true"
+
+# Persistence (optional - for better performance testing)
+persistence:
+  enabled: false
+
+# Security context
+securityContext:
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: true
+  runAsGroup: 65532
+  runAsNonRoot: true
+  runAsUser: 65532
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1

@@ -1,0 +1,52 @@
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Performance optimizations
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    # Enable access logs for monitoring
+    nginx.ingress.kubernetes.io/enable-access-log: "true"
+    # Request ID for tracing
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Request-ID: $request_id";
+      more_set_headers "X-Ingress-Controller: nginx";
+    # Monitoring
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9113"
+  
+  hosts:
+    - host: nipa.sudlor.me
+      paths:
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 3000
+    - host: prometheus.sudlor.me
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: prometheus
+              port:
+                number: 9100
+  
+  tls: []
+
+monitoring:
+  serviceMonitor:
+    enabled: true
