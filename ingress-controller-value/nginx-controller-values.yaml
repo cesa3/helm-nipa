@@ -1,8 +1,13 @@
 controller:
-  # Replica configuration
+
+  config:
+    allow-snippet-annotations: "true"
+    annotations-risk-level: "Critical"
+
+  # Run two instances of the controller for availability
   replicaCount: 2
   
-  # Resource allocation
+  # Basic resource allocation
   resources:
     requests:
       cpu: 200m
@@ -11,93 +16,23 @@ controller:
       cpu: 1000m
       memory: 512Mi
 
-  # Service configuration
+  # Expose the controller on the nodes for external access
   service:
     enabled: true
     type: NodePort
     nodePorts:
       http: 30080
       https: 30443
-    ports:
-      http: 80
-      https: 443
 
-  # Metrics configuration
+  # Enable metrics for Prometheus to scrape
   metrics:
     enabled: true
-    port: 9113
-    service:
-      type: NodePort
-      nodePort: 30113
     serviceMonitor:
       enabled: true
-      additionalLabels:
-        app: nginx-ingress
-      namespace: default
+      # This MUST match the namespace you deploy to
+      namespace: nipa-travel 
 
-  # Configuration for performance
-  config:
-    # Enable access logs in JSON format
-    log-format-escape-json: "true"
-    log-format-upstream: '{"time": "$time_iso8601", "remote_addr": "$remote_addr", "x_forwarded_for": "$proxy_add_x_forwarded_for", "request_id": "$req_id", "remote_user": "$remote_user", "bytes_sent": $bytes_sent, "request_time": $request_time, "status": $status, "vhost": "$host", "request_proto": "$server_protocol", "path": "$uri", "request_query": "$args", "request_length": $request_length, "duration": $request_time, "method": "$request_method", "http_referrer": "$http_referer", "http_user_agent": "$http_user_agent", "upstream_addr": "$upstream_addr", "upstream_response_time": "$upstream_response_time", "upstream_status": "$upstream_status"}'
-    
-    # Performance tuning
-    worker-processes: "auto"
-    worker-connections: "1024"
-    max-worker-connections: "1024"
-    worker-cpu-affinity: "auto"
-    
-    # Keep alive settings
-    keep-alive-requests: "1000"
-    upstream-keepalive-connections: "50"
-    upstream-keepalive-timeout: "60"
-    upstream-keepalive-requests: "100"
-    
-    # Buffer settings
-    client-body-buffer-size: "16k"
-    client-header-buffer-size: "1k"
-    large-client-header-buffers: "4 8k"
-    proxy-buffer-size: "16k"
-    proxy-buffers: "8 16k"
-    
-    # Timeout settings
-    proxy-connect-timeout: "15"
-    proxy-send-timeout: "600"
-    proxy-read-timeout: "600"
-    
-    # Enable gzip
-    enable-gzip: "true"
-    gzip-level: "6"
-    gzip-types: "text/plain text/css text/xml text/javascript application/javascript application/json application/xml+rss"
 
-  # Additional arguments
-  extraArgs:
-    default-ssl-certificate: "default/tls-secret"
-    enable-ssl-passthrough: true
-
-  # Pod disruption budget
-  podDisruptionBudget:
-    enabled: true
-    maxUnavailable: 1
-
-  # Affinity rules for better distribution
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-            - key: app.kubernetes.io/name
-              operator: In
-              values:
-              - ingress-nginx
-          topologyKey: kubernetes.io/hostname
-
-# Default backend (optional)
-defaultBackend:
-  enabled: false
-
-# Admission webhooks (disable for simpler setup)
+# Disable admission webhooks to prevent validation errors during testing.
 admissionWebhooks:
   enabled: false

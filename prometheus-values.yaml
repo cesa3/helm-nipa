@@ -1,4 +1,12 @@
 server:
+  # Global settings are defined here to override chart defaults correctly.
+  global:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+    scrape_timeout: 10s
+    external_labels:
+      cluster: 'ingress-performance-test'
+
   replicaCount: 1
   
   # Resource allocation
@@ -13,7 +21,7 @@ server:
   # Persistence
   persistentVolume:
     enabled: true
-    size: 20Gi
+    size: 5Gi
     storageClass: "local-path"
 
   # Service configuration
@@ -55,17 +63,13 @@ kubeStateMetrics:
 pushgateway:
   enabled: false
 
-# Server configuration files
+# serverFiles contains the configuration files for Prometheus.
 serverFiles:
+  # prometheus.yml configuration is placed here.
+  # The 'global' block is handled by 'server.global' above and will be added automatically by the chart.
   prometheus.yml:
-    global:
-      scrape_interval: 15s
-      evaluation_interval: 15s
-      scrape_timeout: 10s
-      external_labels:
-        cluster: 'ingress-performance-test'
-
-    # Scrape configurations for different ingress controllers
+    rule_files:
+      - /etc/config/rules/*.yml # Correct path for rule files
     scrape_configs:
       # Prometheus itself
       - job_name: 'prometheus'
@@ -121,7 +125,7 @@ serverFiles:
             target_label: __metrics_path__
             replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
 
-      # Kubernetes pods
+      # Kubernetes pods (for dynamic discovery of ingress controllers)
       - job_name: 'kubernetes-pods'
         kubernetes_sd_configs:
           - role: pod
@@ -147,34 +151,6 @@ serverFiles:
             action: replace
             target_label: kubernetes_pod_name
 
-      # Traefik metrics
-      - job_name: 'traefik'
-        static_configs:
-          - targets: ['traefik.default.svc.cluster.local:9100']
-        metrics_path: /metrics
-        scrape_interval: 15s
-
-      # NGINX Ingress metrics
-      - job_name: 'nginx-ingress'
-        static_configs:
-          - targets: ['nginx-ingress-controller-metrics.default.svc.cluster.local:9113']
-        metrics_path: /metrics
-        scrape_interval: 15s
-
-      # APISIX metrics
-      - job_name: 'apisix'
-        static_configs:
-          - targets: ['apisix.default.svc.cluster.local:9091']
-        metrics_path: /apisix/prometheus/metrics
-        scrape_interval: 15s
-
-      # HAProxy Ingress metrics
-      - job_name: 'haproxy-ingress'
-        static_configs:
-          - targets: ['haproxy-ingress.default.svc.cluster.local:1024']
-        metrics_path: /stats/prometheus
-        scrape_interval: 15s
-
       # Your application metrics (frontend)
       - job_name: 'nipa-frontend'
         kubernetes_sd_configs:
@@ -199,40 +175,35 @@ serverFiles:
             action: keep
             regex: http
 
-    # Recording rules for performance analysis
-    rule_files:
-      - /etc/prometheus/rules/*.yml
+  # Rule files are defined under the 'rules' key inside 'serverFiles'
+  rules:
+    recording_rules.yml:
+      groups:
+        - name: ingress_performance
+          interval: 30s
+          rules:
+            # Request rate
+            - record: ingress:request_rate
+              expr: rate(nginx_ingress_controller_requests[5m])
+            
+            # Request duration percentiles
+            - record: ingress:request_duration_p50
+              expr: histogram_quantile(0.50, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
+            
+            - record: ingress:request_duration_p95
+              expr: histogram_quantile(0.95, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
+            
+            - record: ingress:request_duration_p99
+              expr: histogram_quantile(0.99, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
 
-  # Recording rules for better performance analysis
-  recording_rules.yml:
-    groups:
-      - name: ingress_performance
-        interval: 30s
-        rules:
-          # Request rate
-          - record: ingress:request_rate
-            expr: rate(nginx_ingress_controller_requests[5m])
-          
-          # Request duration percentiles
-          - record: ingress:request_duration_p50
-            expr: histogram_quantile(0.50, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
-          
-          - record: ingress:request_duration_p95
-            expr: histogram_quantile(0.95, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
-          
-          - record: ingress:request_duration_p99
-            expr: histogram_quantile(0.99, rate(nginx_ingress_controller_request_duration_seconds_bucket[5m]))
+            # Error rate
+            - record: ingress:error_rate
+              expr: rate(nginx_ingress_controller_requests{status=~"5.."}[5m]) / rate(nginx_ingress_controller_requests[5m])
 
-          # Error rate
-          - record: ingress:error_rate
-            expr: rate(nginx_ingress_controller_requests{status=~"5.."}[5m]) / rate(nginx_ingress_controller_requests[5m])
+            # CPU usage
+            - record: ingress:cpu_usage
+              expr: rate(container_cpu_usage_seconds_total{pod=~".*ingress.*"}[5m])
 
-          # CPU usage
-          - record: ingress:cpu_usage
-            expr: rate(container_cpu_usage_seconds_total{pod=~".*ingress.*"}[5m])
-
-          # Memory usage
-          - record: ingress:memory_usage
-            expr: container_memory_working_set_bytes{pod=~".*ingress.*"}
-
-# Extra scrape configs for additional monitoring
+            # Memory usage
+            - record: ingress:memory_usage
+              expr: container_memory_working_set_bytes{pod=~".*ingress.*"}

@@ -128,7 +128,7 @@ ingress-controller:
 
   config:
     apisix:
-      serviceNamespace: default
+      # serviceNamespace: default
       serviceName: apisix-admin
       servicePort: 9180
       adminKey: "edd1c9f034335f136f87ad84b625c8f1"
@@ -170,7 +170,7 @@ etcd:
 # ServiceMonitor for Prometheus
 serviceMonitor:
   enabled: true
-  namespace: default
+  # namespace: default
   interval: 15s
   labels:
     app: apisix

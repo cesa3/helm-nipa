@@ -3,7 +3,7 @@
 
 # Admin credentials
 adminUser: admin
-# adminPassword: Caesar426800.
+adminPassword: Caesar426800.
 
 # Service configuration
 service:
@@ -23,7 +23,7 @@ resources:
 # Persistence
 persistence:
   enabled: true
-  size: 10Gi
+  size: 5Gi
   storageClassName: "local-path"
 
 # Datasources (auto-configure Prometheus)

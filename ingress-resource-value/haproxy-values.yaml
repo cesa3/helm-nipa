@@ -36,16 +36,6 @@ ingress:
               name: frontend
               port:
                 number: 3000
-
-    - host: prometheus.sudlor.me
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: prometheus
-            port:
-              number: 9100
   
   tls: []
 

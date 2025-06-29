@@ -1,3 +1,7 @@
+{{- if and .Values.ingress.enabled .Values.monitoring.serviceMonitor.enabled }}
+{{/*
+ServiceMonitor for application metrics
+*/}}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:

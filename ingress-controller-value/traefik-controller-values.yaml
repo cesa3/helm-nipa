@@ -51,10 +51,10 @@ additionalArguments:
   - "--metrics.prometheus.addEntryPointsLabels=true"
   - "--metrics.prometheus.addServicesLabels=true"
   - "--metrics.prometheus.addRoutersLabels=true"
-  - "--entrypoints.web.address=:8000"
+  # - "--entrypoints.web.address=:8000"
   - "--entrypoints.websecure.address=:8443"
   - "--entrypoints.metrics.address=:9100"
-  - "--api.dashboard=true"
+  # - "--api.dashboard=true"
   - "--api.debug=true"
 
 # Persistence (optional - for better performance testing)
