@@ -5,19 +5,17 @@ ServiceMonitor for application metrics
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: {{ include "myapp.fullname" . }}-app-metrics
+  name: {{ include "myapp.fullname" . }}-ingress-metrics
   labels:
     {{- include "myapp.labels" . | nindent 4 }}
-    monitoring: "true"
+    monitoring: prometheus-applications
 spec:
   selector:
     matchLabels:
-      {{- include "myapp.selectorLabels" . | nindent 6 }}
+      ingress-monitor: {{ .Values.ingress.className | default "unknown" }}
   endpoints:
-  - port: http
-    interval: 15s
-    path: /metrics
-    honorLabels: true
+  - port: {{ .Values.monitoring.serviceMonitor.metricsPort | default "http" }}
+    path: {{ .Values.monitoring.serviceMonitor.metricsPath | default "/metrics" }}
   namespaceSelector:
     matchNames:
     - {{ .Release.Namespace }}

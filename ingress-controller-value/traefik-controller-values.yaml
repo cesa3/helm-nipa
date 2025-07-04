@@ -15,62 +15,81 @@ service:
 
 ports:
   web:
+    enabled: true
     port: 8000
     exposedPort: 80
     nodePort: 30080
     protocol: TCP
 
   websecure:
+    enabled: true
     port: 8443
     exposedPort: 443
     nodePort: 30443
     protocol: TCP
 
-  metrics:
-    port: 9100
-    exposedPort: 9100
-    nodePort: 30100
-    protocol: TCP
+  # metrics:
+  #   enabled: true
+  #   port: 9100
+  #   exposedPort: 9100
+  #   # nodePort: 30100
+  #   protocol: TCP
+
 
 
 # Metrics and monitoring
 metrics:
   prometheus:
     enabled: true
+    service:
+      enabled: true
+      labels:
+        ingress-monitor: traefik
+      # port: 9101
+      # exposedPort: 9101
+      # nodePort: 30100
+      protocol: TCP
+
+    entryPoint: metrics
     addEntryPointsLabels: true
     addServicesLabels: true
     addRoutersLabels: true
     buckets: "0.1,0.3,1.2,5.0,10.0,30.0"
 
+    # serviceMonitor:
+    #   enabled: true
+    #   interval: 15s
+    #   namespace: monitoring
+    #   additionalLabels:
+    #     monitoring: prometheus-applications
+    #   namespace: nipa-travel
+    #   namespaceSelector:
+    #     matchNames:
+    #       - nipa-travel
+
 # Traefik configuration
-additionalArguments:
-  - "--log.level=INFO"
-  - "--accesslog=true"
-  - "--accesslog.format=json"
-  - "--metrics.prometheus=true"
-  - "--metrics.prometheus.addEntryPointsLabels=true"
-  - "--metrics.prometheus.addServicesLabels=true"
-  - "--metrics.prometheus.addRoutersLabels=true"
+# additionalArguments:
+  # - "--accesslog=true"
+  # - "--accesslog.format=json"
+  # - "--metrics.prometheus=true"
+  # - "--metrics.prometheus.addEntryPointsLabels=true"
+  # - "--metrics.prometheus.addServicesLabels=true"
+  # - "--metrics.prometheus.addRoutersLabels=true"
   # - "--entrypoints.web.address=:8000"
-  - "--entrypoints.websecure.address=:8443"
-  - "--entrypoints.metrics.address=:9100"
-  # - "--api.dashboard=true"
-  - "--api.debug=true"
+  # - "--entrypoints.websecure.address=:8443"
+  # # - "--entrypoints.metrics.address=:9100"
+  # # - "--api.dashboard=true"
+  # - "--api.debug=true"
 
 # Persistence (optional - for better performance testing)
-persistence:
-  enabled: false
+# persistence:
+#   enabled: false
 
 # Security context
-securityContext:
-  capabilities:
-    drop: [ALL]
-  readOnlyRootFilesystem: true
-  runAsGroup: 65532
-  runAsNonRoot: true
-  runAsUser: 65532
-
-# Pod disruption budget
-podDisruptionBudget:
-  enabled: true
-  maxUnavailable: 1
+# securityContext:
+#   capabilities:
+#     drop: [ALL]
+#   readOnlyRootFilesystem: true
+#   runAsGroup: 65532
+#   runAsNonRoot: true
+#   runAsUser: 65532

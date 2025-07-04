@@ -17,28 +17,6 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
     {{- /* Add performance monitoring annotations based on controller */ -}}
-    {{- if eq $.Values.ingress.className "traefik" }}
-    # Traefik performance annotations
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "9100"
-    {{- else if eq $.Values.ingress.className "nginx" }}
-    # NGINX performance annotations
-    nginx.ingress.kubernetes.io/enable-access-log: "true"
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "9113"
-    {{- else if eq $.Values.ingress.className "apisix" }}
-    # APISIX performance annotations
-    apisix.ingress.kubernetes.io/enable-access-log: "true"
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "9091"
-    {{- else if eq $.Values.ingress.className "haproxy" }}
-    # HAProxy performance annotations
-    haproxy-ingress.github.io/config-snippet: |
-      http-response set-header X-Ingress-Controller haproxy
-      http-response set-header X-Request-ID %[unique-id]
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "1024"
-    {{- end }}
   {{- end }}
 spec:
   {{- if .Values.ingress.className }}

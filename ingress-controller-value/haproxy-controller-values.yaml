@@ -2,12 +2,6 @@ controller:
   name: haproxy-ingress
   replicaCount: 2
   
-  # Image configuration
-  image:
-    repository: haproxytech/haproxy-ingress
-    tag: "v0.14"
-    pullPolicy: IfNotPresent
-
   # Resource allocation
   resources:
     requests:
@@ -20,112 +14,28 @@ controller:
   # Service configuration
   service:
     type: NodePort
+    labels:
+      ingress-monitor: haproxy
     nodePorts:
       http: 30080
       https: 30443
-      stat: 30404
-    ports:
-      http: 80
-      https: 443
-      stat: 1024
-
-  # HAProxy configuration
-  config:
-    # Global configuration
-    global-config-snippet: |
-      tune.ssl.default-dh-param 1024
-      tune.bufsize 32768
-      tune.maxrewrite 8192
-      tune.http.maxhdr 200
-    
-    # Default configuration
-    config-snippet: |
-      option log-health-checks
-      option log-separate-errors
-      option dontlog-normal
-      errorfile 400 /usr/local/etc/haproxy/errors/400.http
-      errorfile 403 /usr/local/etc/haproxy/errors/403.http
-      errorfile 408 /usr/local/etc/haproxy/errors/408.http
-      errorfile 500 /usr/local/etc/haproxy/errors/500.http
-      errorfile 502 /usr/local/etc/haproxy/errors/502.http
-      errorfile 503 /usr/local/etc/haproxy/errors/503.http
-      errorfile 504 /usr/local/etc/haproxy/errors/504.http
-
-    # Logging configuration
-    syslog-server: "address:stdout, facility:local0, tag:ingress, level:info"
-    log-format: '{"timestamp":"%Ts","frontend_name":"%f","backend_name":"%b","server_name":"%s","time_request":"%TR","time_queue":"%Tw","time_connect":"%Tc","time_response":"%Tr","time_active":"%Ta","http_status_code":"%ST","bytes_read":"%B","captured_request_cookie":"%CC","captured_response_cookie":"%CS","termination_state":"%tsc","actconn":"%ac","feconn":"%fc","beconn":"%bc","srvconn":"%sc","retries":"%rq","srv_queue":"%sq","backend_queue":"%bq","captured_request_headers":"%hr","captured_response_headers":"%hs","http_request":"%r"}'
-
-    # Performance tuning
-    nbproc: "1"
-    nbthread: "2"
-    cpu-map: "auto:1/1-2 0-1"
-    
-    # Connection settings
-    maxconn-server: "1000"
-    timeout-http-request: "15s"
-    timeout-connect: "5s"
-    timeout-client: "30s"
-    timeout-server: "30s"
-    timeout-tunnel: "3600s"
-    timeout-http-keep-alive: "10s"
-    
-    # Compression
-    compression-algo: "gzip"
-    compression-type: "text/html text/plain text/css text/javascript application/javascript application/json application/xml text/xml"
-
-  # Statistics configuration
-  stats:
+  metrics:
     enabled: true
-    port: 1024
-    
-  # Health checks
-  livenessProbe:
-    httpGet:
-      path: /healthz
-      port: 10254
-      scheme: HTTP
-    initialDelaySeconds: 30
-    timeoutSeconds: 5
-    
-  readinessProbe:
-    httpGet:
-      path: /healthz
-      port: 10254
-      scheme: HTTP
-    initialDelaySeconds: 5
-    timeoutSeconds: 5
 
-  # Extra arguments
-  extraArgs:
-    - --log-level=2
-    - --sort-backends=true
-    - --backend-shards=0
-    - --reload-strategy=reusesocket
-    - --stats-collect-processing-period=500ms
 
-  # Pod disruption budget
-  podDisruptionBudget:
-    enabled: true
-    maxUnavailable: 1
+  # Enable statistics for Prometheus
+  # stat:
+  #   enabled: true
+  #   port: 9101
+  #   # Expose Prometheus metrics endpoint on /metrics
+  #   prometheus:
+  #     enabled: true
+  #     path: /metrics
+      
 
-  # Affinity rules
-  affinity:
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchExpressions:
-            - key: app.kubernetes.io/name
-              operator: In
-              values:
-              - haproxy-ingress
-          topologyKey: kubernetes.io/hostname
-
-# Default backend
+# Default backend (HAProxy requires this)
 defaultBackend:
   enabled: true
-  name: haproxy-ingress-default-backend
   replicaCount: 1
   
   resources:
@@ -136,22 +46,11 @@ defaultBackend:
       cpu: 100m
       memory: 128Mi
 
-# RBAC configuration
-rbac:
-  create: true
-
-# Service Account
-serviceAccount:
-  create: true
-  name: haproxy-ingress
-
-# ServiceMonitor for Prometheus (custom resource)
+# ServiceMonitor for Prometheus
 serviceMonitor:
   enabled: true
-  additionalLabels:
-    app: haproxy-ingress
-  namespace: default
+  namespace: monitoring
   endpoints:
-  - port: stat
-    interval: 15s
-    path: /stats/prometheus
+    - port: stat
+      interval: 15s
+      path: /metrics

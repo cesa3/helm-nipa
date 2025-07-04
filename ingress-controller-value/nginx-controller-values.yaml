@@ -27,12 +27,17 @@ controller:
   # Enable metrics for Prometheus to scrape
   metrics:
     enabled: true
+    service:
+      enabled: true
+      type: ClusterIP
+      port: 10254
+      labels:
+        ingress-monitor: nginx
     serviceMonitor:
       enabled: true
+      additionalLabels:
+        release: prometheus
+      interval: 15s
+      scrapeTimeout: 10s
       # This MUST match the namespace you deploy to
-      namespace: nipa-travel 
-
-
-# Disable admission webhooks to prevent validation errors during testing.
-admissionWebhooks:
-  enabled: false
+      namespace: nipa-travel

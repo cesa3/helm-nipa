@@ -2,22 +2,8 @@ ingress:
   enabled: true
   className: "apisix"
   annotations:
-    # APISIX specific configurations
+    kubernetes.io/ingress.class: "apisix"
     apisix.ingress.kubernetes.io/enable-access-log: "true"
-    apisix.ingress.kubernetes.io/upstream-scheme: "http"
-    # Performance plugins
-    apisix.ingress.kubernetes.io/plugins: |
-      - name: prometheus
-        enable: true
-      - name: request-id
-        enable: true
-      - name: gzip
-        enable: true
-        config:
-          comp_level: 6
-          http_version: 1.1
-          buffers: 8 16k
-    # Monitoring
     prometheus.io/scrape: "true"
     prometheus.io/port: "9091"
   
@@ -45,3 +31,5 @@ ingress:
 monitoring:
   serviceMonitor:
     enabled: true
+    metricsPath: /apisix/prometheus/metrics
+    metricsPort: apisix-admin

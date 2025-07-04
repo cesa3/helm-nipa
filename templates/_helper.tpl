@@ -50,6 +50,14 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Service Monitor labels
+*/}}
+{{- define "myapp.serviceMonitor.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "myapp.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
 Frontend labels
 */}}
 {{- define "myapp.frontend.labels" -}}

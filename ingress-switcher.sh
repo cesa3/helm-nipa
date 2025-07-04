@@ -139,15 +139,11 @@ function install_ingress() {
       -n ${NAMESPACE} \
       --set ingress-controller.config.apisix.serviceNamespace=${NAMESPACE} \
       --set serviceMonitor.namespace=${NAMESPACE} \
+      # --set gateway.http.nodePort=30080 \
+      # --set gateway.https.nodePort=30443 \
       --create-namespace \
       --atomic --wait --timeout ${TIMEOUT}
   # Special case for NGINX to allow configuration snippets
-  elif [ "$ingress_type" = "nginx" ]; then
-    helm upgrade --install ${ingress_type} ${chart} \
-      -f ${controller_file} \
-      -n ${NAMESPACE} \
-      --create-namespace \
-      --atomic --wait --timeout ${TIMEOUT}
   else
     helm upgrade --install ${ingress_type} ${chart} \
       -f ${controller_file} \
