@@ -4,6 +4,7 @@ ingress:
   annotations:
     kubernetes.io/ingress.class: "apisix"
     apisix.ingress.kubernetes.io/enable-access-log: "true"
+    k8s.apisix.apache.org/load-balancer: "least_conn"
     prometheus.io/scrape: "true"
     prometheus.io/port: "9091"
   

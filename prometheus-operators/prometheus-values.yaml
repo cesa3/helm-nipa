@@ -7,9 +7,6 @@ grafana:
   nodeSelector:
     kubernetes.io/os: linux
   adminPassword: admin  
-  service:
-    type: NodePort
-    nodePort: 30030
     # port: 80
   persistence:
     enabled: true
@@ -30,9 +27,6 @@ kubelet:
     interval: "15s"
 prometheus:
   fullnameOverride: "prometheus"
-  service:
-    type: NodePort
-    nodePort: 30020
     # port: 80
   serviceAccount:
     create: true

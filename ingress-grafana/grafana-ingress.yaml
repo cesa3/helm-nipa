@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana-ingress
+  labels:
+    app: grafana
+    release: grafana
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik-monitoring
+  rules:
+    - host: grafana.sudlor.me
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: kube-prometheus-stack-grafana
+              port:
+                number: 80
+  
+  

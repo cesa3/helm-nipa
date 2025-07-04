@@ -46,6 +46,16 @@ spec:
                 port:
                   number: {{ .backend.service.port.number }}
           {{- end }}
+    - host: "grafana.sudlor.me"
+      http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: grafana
+              port:
+                number: 80
     {{- end }}
 {{- end }}
 

@@ -9,43 +9,9 @@ apisix:
       cpu: 1000m
       memory: 512Mi
 
-  serviceNamespace: nipa-travel
-
-metrics:
-  enabled: tue
-  serviceMonitor:
-    enabled: true
-    labels:
-      # release: prometheus
-      monitoring: prometheus-applications
-plugins:
-  - prometheus # enable prometheus Plugin
-  - public-api # enable public-api Plugin
-# Prometheus
-# serviceMonitor:
-#   namespace: nipa-travel
-# serviceMonitor:
-#   enabled: true
-#   namespace: nipa-travel
-#   additionalLabels:
-#     # release: prometheus
-#     monitoring: prometheus-applications
-#   interval: 15s
-
-# admin:
-#   service:
-#     labelsOverride:
-#       ingress-monitor: apisix
-
-
 service:
-  labelsOverride:
-    app.kubernetes.io/name: "apisix"
-    app.kubernetes.io/instance: "{{ .Release.Name }}"
-
-    ingress-monitor: apisix
   type: NodePort
-
+  
   # HTTP Configuration
   http:
     enabled: true
@@ -83,6 +49,10 @@ ingress-controller:
       servicePort: 9180
       adminKey: "edd1c9f034335f136f87ad84b625c8f1"
 
+plugins:
+  - prometheus # enable prometheus Plugin
+  - public-api # enable public-api Plugin
+# Prometheus
 prometheus:
   enabled: true
 

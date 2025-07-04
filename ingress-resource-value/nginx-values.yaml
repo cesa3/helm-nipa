@@ -32,7 +32,7 @@ ingress:
               name: frontend
               port:
                 number: 3000
-  
+
   tls: []
 
 monitoring:

@@ -131,7 +131,7 @@ function install_ingress() {
   
   # Step 1: Install the ingress controller
   echo -e "${BLUE}Step 1/2: Installing ${ingress_type} ingress controller...${NC}"
-  
+
   # Special case for APISIX
   if [ "$ingress_type" = "apisix" ]; then
     helm upgrade --install ${ingress_type} ${chart} \
@@ -139,11 +139,8 @@ function install_ingress() {
       -n ${NAMESPACE} \
       --set ingress-controller.config.apisix.serviceNamespace=${NAMESPACE} \
       --set serviceMonitor.namespace=${NAMESPACE} \
-      # --set gateway.http.nodePort=30080 \
-      # --set gateway.https.nodePort=30443 \
       --create-namespace \
       --atomic --wait --timeout ${TIMEOUT}
-  # Special case for NGINX to allow configuration snippets
   else
     helm upgrade --install ${ingress_type} ${chart} \
       -f ${controller_file} \
@@ -151,7 +148,27 @@ function install_ingress() {
       --create-namespace \
       --atomic --wait --timeout ${TIMEOUT}
   fi
-  
+
+  # Wait for ingress controller deployment to be ready
+  echo -e "${BLUE}Waiting for ${ingress_type} ingress controller deployment to be ready...${NC}"
+  kubectl rollout status deployment -n ${NAMESPACE} -l app.kubernetes.io/name=${ingress_type} --timeout=${TIMEOUT} || {
+    echo -e "${RED}Error: Ingress controller deployment did not become ready in time.${NC}"
+    exit 1
+  }
+
+  # Special case: If APISIX, wait for etcd StatefulSet to be ready
+  if [ "$ingress_type" = "apisix" ]; then
+    echo -e "${BLUE}Waiting for APISIX etcd StatefulSet to be ready...${NC}"
+    kubectl rollout status statefulset.apps/apisix-etcd -n ${NAMESPACE} --timeout=${TIMEOUT} || {
+      echo -e "${RED}Error: APISIX etcd StatefulSet did not become ready in time.${NC}"
+      exit 1
+    }
+  fi
+
+  # Wait 15 seconds for ingress controller to fully initialize
+  echo -e "${BLUE}Waiting 15 seconds for ingress controller to fully initialize...${NC}"
+  sleep 15
+
   echo -e "${GREEN}✓ ${ingress_type} ingress controller installed successfully${NC}"
   
   # Step 2: Install the application with ingress resources
