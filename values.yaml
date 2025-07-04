@@ -43,7 +43,7 @@ frontend:
 # Backend configuration
 backend:
   name: backend
-  replicaCount: 2
+  replicaCount: 25
   
   image:
     repository: mcowl/nipa-travel-backend
