@@ -35,6 +35,10 @@ prometheus:
     nodeSelector:
       kubernetes.io/os: linux
     retention: "30d"  
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: "local-path"
 prometheus-node-exporter:
   fullnameOverride: "node-exporter"
   prometheus:

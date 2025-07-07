@@ -218,12 +218,25 @@ function clean_ingress() {
   echo -e "${BLUE}===== Cleaning up ${ingress_type} ingress setup =====${NC}"
   
   # Step 1: Uninstall the application
-  echo -e "${BLUE}Step 1/2: Uninstalling application...${NC}"
-  helm uninstall ${APP_NAME} -n ${NAMESPACE} 2>/dev/null || echo -e "${YELLOW}Application was not installed${NC}"
+  echo -e "${BLUE}Step 1/3: Uninstalling application...${NC}"
+  helm uninstall ${APP_NAME} -n ${NAMESPACE} --wait 2>/dev/null || echo -e "${YELLOW}Application was not installed or already removed${NC}"
   
   # Step 2: Uninstall the ingress controller
-  echo -e "${BLUE}Step 2/2: Uninstalling ${ingress_type} ingress controller...${NC}"
-  helm uninstall ${ingress_type} -n ${NAMESPACE} 2>/dev/null || echo -e "${YELLOW}${ingress_type} ingress controller was not installed${NC}"
+  echo -e "${BLUE}Step 2/3: Uninstalling ${ingress_type} ingress controller...${NC}"
+  helm uninstall ${ingress_type} -n ${NAMESPACE} --wait 2>/dev/null || echo -e "${YELLOW}${ingress_type} ingress controller was not installed or already removed${NC}"
+
+  # Step 3: Special cleanup for APISIX
+  if [ "$ingress_type" = "apisix" ]; then
+    echo -e "${BLUE}Step 3/3: Performing special cleanup for APISIX...${NC}"
+    
+    # Delete etcd Persistent Volume Claims (PVCs)
+    echo -e "${YELLOW}  - Deleting etcd PVCs...${NC}"
+    kubectl delete pvc -n ${NAMESPACE} -l app.kubernetes.io/instance=apisix,app.kubernetes.io/component=etcd 2>/dev/null || echo "    No etcd PVCs found."
+
+    # Delete the IngressClass resource
+    echo -e "${YELLOW}  - Deleting IngressClass...${NC}"
+    kubectl delete ingressclass ${ingress_type} 2>/dev/null || echo "    IngressClass '${ingress_type}' not found."
+  fi
   
   echo -e "${GREEN}===== ${ingress_type} ingress setup cleaned up! =====${NC}"
 }
@@ -242,6 +255,17 @@ function clean_all() {
   for ingress_type in traefik nginx apisix haproxy; do
     echo -e "${BLUE}  - Uninstalling ${ingress_type}...${NC}"
     helm uninstall ${ingress_type} -n ${NAMESPACE} 2>/dev/null || echo -e "${YELLOW}  ${ingress_type} was not installed${NC}"
+    if [ "${ingress_type}" = "apisix" ]; then
+    echo -e "${BLUE}Step 3/3: Performing special cleanup for APISIX...${NC}"
+    
+    # Delete etcd Persistent Volume Claims (PVCs)
+    echo -e "${YELLOW}  - Deleting etcd PVCs...${NC}"
+    kubectl delete pvc -n ${NAMESPACE} -l app.kubernetes.io/instance=apisix,app.kubernetes.io/component=etcd 2>/dev/null || echo "    No etcd PVCs found."
+
+    # Delete the IngressClass resource
+    echo -e "${YELLOW}  - Deleting IngressClass...${NC}"
+    kubectl delete ingressclass ${ingress_type} 2>/dev/null || echo "    IngressClass '${ingress_type}' not found."
+  fi
   done
   
   echo -e "${GREEN}===== All ingress setups cleaned up! =====${NC}"

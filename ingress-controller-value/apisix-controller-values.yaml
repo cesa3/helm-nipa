@@ -43,11 +43,11 @@ ingress-controller:
       cpu: 500m
       memory: 256Mi
 
-  config:
-    apisix:
-      serviceName: apisix-admin
-      servicePort: 9180
-      adminKey: "edd1c9f034335f136f87ad84b625c8f1"
+  # config:
+  #   apisix:
+  #     serviceName: apisix-ingress-controller-apisix-gateway
+  #     servicePort: 9180
+  #     adminKey: "edd1c9f034335f136f87ad84b625c8f1"
 
 plugins:
   - prometheus # enable prometheus Plugin
