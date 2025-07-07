@@ -8,7 +8,7 @@ frontend:
   
   image:
     repository: mcowl/nipa-travel-frontend
-    tag: "v6.6.6"
+    tag: "v7.7.7"
     pullPolicy: Always
   
   service:
