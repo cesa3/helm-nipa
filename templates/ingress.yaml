@@ -49,13 +49,13 @@ spec:
     - host: "grafana.sudlor.me"
       http:
         paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: grafana
-              port:
-                number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
     {{- end }}
 {{- end }}
 
