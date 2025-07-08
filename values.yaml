@@ -14,7 +14,7 @@ frontend:
   service:
     type: ClusterIP
     port: 3000
-    targetPort: 3000
+    targetPort: 80
   
   resources:
     requests:
@@ -44,7 +44,7 @@ frontend:
 backend:
   name: backend
   replicaCount: 5
-  
+  enabled: false
   image:
     repository: mcowl/nipa-travel-backend
     tag: "v7.7.7"
