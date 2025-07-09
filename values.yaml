@@ -4,7 +4,7 @@ fullnameOverride: ""
 # Frontend configuration
 frontend:
   name: frontend
-  replicaCount: 2
+  replicaCount: 4
   
   image:
     repository: mcowl/nipa-travel-frontend
@@ -43,7 +43,7 @@ frontend:
 # Backend configuration
 backend:
   name: backend
-  replicaCount: 5
+  replicaCount: 4
   enabled: true
   image:
     repository: mcowl/nipa-travel-backend
