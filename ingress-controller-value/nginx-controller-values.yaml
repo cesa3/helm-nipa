@@ -5,7 +5,7 @@ controller:
     annotations-risk-level: "Critical"
 
   # Run two instances of the controller for availability
-  replicaCount: 2
+  replicaCount: 1
   
   # Basic resource allocation
   resources:

@@ -1,6 +1,6 @@
 controller:
   name: haproxy-ingress
-  replicaCount: 2
+  replicaCount: 1
   
   # Resource allocation
   resources:
