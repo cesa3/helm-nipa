@@ -7,8 +7,8 @@ frontend:
   replicaCount: 2
   
   image:
-    repository: caesar521/my-static-website
-    tag: "latest"
+    repository: mcowl/nipa-travel-frontend
+    tag: "v7.7.7"
     pullPolicy: Always
   
   service:
@@ -44,7 +44,7 @@ frontend:
 backend:
   name: backend
   replicaCount: 5
-  enabled: false
+  enabled: true
   image:
     repository: mcowl/nipa-travel-backend
     tag: "v7.7.7"
